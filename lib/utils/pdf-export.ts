@@ -60,7 +60,7 @@ function addFooter(doc: jsPDF, pageNum: number, total: number) {
 }
 
 function applyWatermarkAndFooterToAllPages(doc: jsPDF) {
-  const total = (doc.internal as { getNumberOfPages: () => number }).getNumberOfPages()
+  const total = doc.internal.pages.length - 1
   for (let i = 1; i <= total; i++) {
     doc.setPage(i)
     addWatermark(doc)
