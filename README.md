@@ -48,7 +48,7 @@ No account required. Works offline with a local Ollama model. Self-hostable.
 
 ```bash
 # 1. Clone
-git clone https://github.com/yourusername/studyforge.git
+git clone https://github.com/RishavRajSingh44/StudyForge.git
 cd studyforge
 
 # 2. Install dependencies

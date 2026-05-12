@@ -16,7 +16,7 @@ Thank you for your interest in contributing! Please read this guide before openi
 
 ```bash
 # 1. Fork the repo and clone your fork
-git clone https://github.com/YOUR_USERNAME/StudyForge.git
+git clone https://github.com/RishavRajSingh44/StudyForge.git
 cd StudyForge
 
 # 2. Install dependencies

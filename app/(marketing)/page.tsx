@@ -62,7 +62,7 @@ export default function LandingPage() {
             </Button>
           </Link>
           <a
-            href="https://github.com/yourusername/studyforge"
+            href="https://github.com/RishavRajSingh44/StudyForge"
             target="_blank"
             rel="noopener noreferrer"
           >
