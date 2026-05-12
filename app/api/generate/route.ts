@@ -17,12 +17,9 @@ function sseEvent(event: SSEEvent): string {
 
 export async function POST(req: NextRequest) {
   const encoder = new TextEncoder()
-  let controllerRef: ReadableStreamDefaultController | null = null
 
   const stream = new ReadableStream({
     async start(controller) {
-      controllerRef = controller
-
       const send = (event: SSEEvent) => {
         try {
           controller.enqueue(encoder.encode(sseEvent(event)))
@@ -161,7 +158,7 @@ export async function POST(req: NextRequest) {
         // Parse and persist
         const parsed = parseGenerationResponse(fullResponse)
 
-        const { data: notesRow } = await supabase
+        await supabase
           .from('generated_notes')
           .insert({
             session_id,

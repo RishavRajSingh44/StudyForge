@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
@@ -86,9 +87,9 @@ export default function QuizPage() {
       <div className="w-full max-w-xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <a href="/" className="font-semibold text-base tracking-tight">
+          <Link href="/" className="font-semibold text-base tracking-tight">
             Study<span className="text-orange-500">Forge</span>
-          </a>
+          </Link>
           <span className="text-sm text-gray-400">{currentIndex + 1} / {total}</span>
         </div>
 

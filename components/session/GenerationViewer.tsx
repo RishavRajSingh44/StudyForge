@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -9,7 +9,6 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { ChevronRight, AlertCircle, RefreshCw, Download } from 'lucide-react'
-import { useSSE } from '@/lib/hooks/useSSE'
 import { useGenerationStore } from '@/lib/stores/generation-store'
 import { parseGenerationResponse } from '@/lib/ai/response-parser'
 import { downloadNotesPDF, downloadQuestionsPDF, downloadQuizPDF } from '@/lib/utils/pdf-export'
@@ -20,7 +19,6 @@ interface Props {
 }
 
 export default function GenerationViewer({ sessionId }: Props) {
-  const router = useRouter()
   const {
     status, statusMessage, rawBuffer,
     sections, expectedQuestions, quizTitle, quizQuestions,
@@ -28,7 +26,6 @@ export default function GenerationViewer({ sessionId }: Props) {
     setExpectedQuestions, setQuiz, setError, reset,
   } = useGenerationStore()
 
-  const [sseUrl, setSseUrl] = useState<string | null>(null)
   const [activeSection, setActiveSection] = useState<string | null>(null)
   const hasStarted = useRef(false)
 
@@ -89,15 +86,13 @@ export default function GenerationViewer({ sessionId }: Props) {
     }
   }, [rawBuffer, status]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const quizId = quizQuestions.length > 0 ? `quiz-${sessionId}` : null
-
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-gray-950">
       {/* Header */}
       <header className="border-b border-gray-200 dark:border-gray-800 px-6 h-14 flex items-center justify-between shrink-0">
-        <a href="/" className="font-semibold text-base tracking-tight">
+        <Link href="/" className="font-semibold text-base tracking-tight">
           Study<span className="text-orange-500">Forge</span>
-        </a>
+        </Link>
         <StatusBanner status={status} message={statusMessage} />
       </header>
 

@@ -1,6 +1,7 @@
 'use client'
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -97,9 +98,9 @@ export default function CreatePage() {
       <div className="max-w-xl mx-auto">
         {/* Logo */}
         <div className="mb-8 text-center">
-          <a href="/" className="font-semibold text-xl tracking-tight">
+          <Link href="/" className="font-semibold text-xl tracking-tight">
             Study<span className="text-orange-500">Forge</span>
-          </a>
+          </Link>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Create your study pack</p>
         </div>
 

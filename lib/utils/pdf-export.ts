@@ -1,8 +1,7 @@
-import { jsPDF } from 'jspdf'
+import { jsPDF, GState } from 'jspdf'
 import type { NoteSection, ExpectedQuestion, QuizQuestion } from '@/types/generation'
 
 const BRAND = 'StudyForge'
-const PRIMARY = '#f97316' // orange-500
 const WATERMARK_TEXT = 'StudyForge'
 
 function createDoc(): jsPDF {
@@ -13,7 +12,7 @@ function addWatermark(doc: jsPDF) {
   const pageW = doc.internal.pageSize.getWidth()
   const pageH = doc.internal.pageSize.getHeight()
   doc.saveGraphicsState()
-  doc.setGState(new (doc as any).GState({ opacity: 0.07 }))
+  doc.setGState(new GState({ opacity: 0.07 }))
   doc.setFontSize(60)
   doc.setTextColor(150, 150, 150)
   doc.setFont('helvetica', 'bold')
@@ -61,7 +60,7 @@ function addFooter(doc: jsPDF, pageNum: number, total: number) {
 }
 
 function applyWatermarkAndFooterToAllPages(doc: jsPDF) {
-  const total = (doc.internal as any).getNumberOfPages()
+  const total = (doc.internal as { getNumberOfPages: () => number }).getNumberOfPages()
   for (let i = 1; i <= total; i++) {
     doc.setPage(i)
     addWatermark(doc)

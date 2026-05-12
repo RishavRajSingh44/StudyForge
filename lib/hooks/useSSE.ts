@@ -12,7 +12,10 @@ export function useSSE(
   },
 ) {
   const handlersRef = useRef(handlers)
-  handlersRef.current = handlers
+
+  useEffect(() => {
+    handlersRef.current = handlers
+  })
 
   useEffect(() => {
     if (!url) return
@@ -48,7 +51,7 @@ export function useSSE(
             } catch {}
           }
         }
-      } catch (err) {
+      } catch {
         if (!controller.signal.aborted) {
           handlersRef.current.onError?.('Connection lost')
         }
