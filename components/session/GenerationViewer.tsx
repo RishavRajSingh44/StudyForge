@@ -153,21 +153,27 @@ export default function GenerationViewer({ sessionId }: Props) {
                 </TabsList>
               </div>
 
-              <TabsContent value="notes" className="flex-1 overflow-y-auto px-6 py-6 max-w-3xl">
-                <NotesTab sections={sections} isGenerating={status === 'generating'} />
+              <TabsContent value="notes" className="flex-1 overflow-y-auto px-6 py-6">
+                <div className="max-w-3xl mx-auto">
+                  <NotesTab sections={sections} isGenerating={status === 'generating'} />
+                </div>
               </TabsContent>
 
-              <TabsContent value="questions" className="flex-1 overflow-y-auto px-6 py-6 max-w-3xl">
-                <QuestionsTab questions={expectedQuestions} isGenerating={status === 'generating'} />
+              <TabsContent value="questions" className="flex-1 overflow-y-auto px-6 py-6">
+                <div className="max-w-3xl mx-auto">
+                  <QuestionsTab questions={expectedQuestions} isGenerating={status === 'generating'} />
+                </div>
               </TabsContent>
 
-              <TabsContent value="quiz" className="flex-1 overflow-y-auto px-6 py-6 max-w-3xl">
-                <QuizTab
-                  title={quizTitle}
-                  questions={quizQuestions}
-                  sessionId={sessionId}
-                  isGenerating={status === 'generating'}
-                />
+              <TabsContent value="quiz" className="flex-1 overflow-y-auto px-6 py-6">
+                <div className="max-w-3xl mx-auto">
+                  <QuizTab
+                    title={quizTitle}
+                    questions={quizQuestions}
+                    sessionId={sessionId}
+                    isGenerating={status === 'generating'}
+                  />
+                </div>
               </TabsContent>
             </Tabs>
           )}
