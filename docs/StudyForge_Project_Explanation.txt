@@ -1,0 +1,675 @@
+================================================================================
+  STUDYFORGE — COMPLETE PROJECT EXPLANATION
+  For presentations, interviews, viva, and technical reviews
+================================================================================
+
+--------------------------------------------------------------------------------
+1. WHAT IS STUDYFORGE?
+--------------------------------------------------------------------------------
+
+StudyForge is an open-source, AI-powered study assistant web application. Its
+core purpose is to help university and school students prepare for exams by
+automatically converting their lecture materials (PDFs, PowerPoint slides, Word
+documents) into structured study resources.
+
+A student uploads their lecture slides, enters their university name and course
+code, and StudyForge:
+  - Searches the internet for their specific course syllabus and exam format
+  - Parses and understands every slide and page they uploaded
+  - Sends all this context to an AI model
+  - Streams back three outputs in real time:
+      1. Structured study notes (sections, exam tips, key concepts)
+      2. Expected exam questions (with model answers, difficulty, mark weightage)
+      3. An interactive quiz (MCQ, true/false, short answer)
+
+No account is required. It works offline with a local AI model (Ollama). It is
+fully self-hostable. The license is AGPL-3.0.
+
+--------------------------------------------------------------------------------
+2. THE PROBLEM BEING SOLVED
+--------------------------------------------------------------------------------
+
+Students spend hours manually reading lecture slides, trying to guess which
+topics are exam-relevant, and creating study notes by hand. This process is:
+  - Time-consuming: reading 200 slides per subject takes many hours
+  - Generic: notes from the internet are not tailored to a specific university's
+    exam style or a specific professor's course structure
+  - Incomplete: students often miss key topics or exam formats
+
+StudyForge solves all three:
+  - It reduces hours of work to minutes
+  - It is course-specific (it fetches your actual syllabus and exam format)
+  - It generates questions based on what your university actually tests
+
+--------------------------------------------------------------------------------
+3. TECHNOLOGY STACK — WHAT AND WHY
+--------------------------------------------------------------------------------
+
+FRAMEWORK: Next.js 16 (App Router) with TypeScript strict mode
+  - Why Next.js: It handles both the frontend (React) and backend (API routes)
+    in one codebase. The App Router allows server components, which reduces
+    client-side JavaScript. It has built-in SSE (Server-Sent Events) support
+    needed for streaming AI output.
+  - Why TypeScript strict: Catches type errors at build time. Prevents runtime
+    bugs like passing wrong shapes to the AI prompt builder. In a project with
+    complex JSON structures (AI responses, quiz objects), strict typing is
+    essential.
+  - Why not separate frontend/backend (e.g., React + Express): Unnecessary
+    complexity for a solo/small-team project. Next.js colocation reduces
+    deployment overhead.
+
+DATABASE: Supabase (PostgreSQL 15 + Storage + Auth)
+  - Why Supabase: Provides a managed PostgreSQL database, file storage (for
+    uploaded PDFs), and optional authentication — all in one service with a
+    generous free tier. It has a JavaScript SDK that works in both browser and
+    server contexts.
+  - Why PostgreSQL over MongoDB: The data is relational. Sessions belong to
+    users. Uploads belong to sessions. Chunks belong to uploads. A relational
+    schema with foreign keys and cascades is the correct model.
+  - Why Supabase Storage: Uploaded files (PDFs, PPTXs) need secure, server-side
+    storage. Supabase Storage provides signed URLs and bucket-level access
+    control. Files are never exposed to the public directly.
+  - Why not Firebase: Firebase's NoSQL model would require denormalization of
+    the schema. Supabase's SQL interface gives more flexibility for complex
+    queries and aggregations.
+
+AI LAYER: Ollama → Gemini → Claude → OpenAI (waterfall with auto-fallback)
+  - Why multiple providers: No single provider works for every user. Students
+    who want free usage can run Ollama locally. Users without a GPU can use
+    Gemini's free tier. Paid users can use Claude or GPT-4o for best quality.
+  - Why waterfall (not user-selected): The app tries the best available option
+    automatically. If Ollama isn't running, it moves to Gemini. This makes the
+    app resilient and reduces user friction.
+  - Why Ollama as first choice: It runs locally, costs nothing, has no rate
+    limits, and works offline. For a self-hosted educational tool, this is ideal.
+  - Why Gemini as second: Has a free tier with high rate limits, good JSON
+    output quality, and supports the context lengths needed for large documents.
+  - Model used with Ollama: qwen3:30b (primary), qwen2.5:14b (fallback) — both
+    are strong open-weight models that handle long context and JSON generation.
+
+WEB SEARCH: Tavily API (primary), Brave Search (fallback)
+  - Why web search at all: Without web context, the AI only knows what's in the
+    uploaded files. With it, the AI also knows the actual course syllabus, the
+    exam format (MCQ vs essay vs calculation), and supplementary notes. This
+    dramatically improves output relevance.
+  - What is searched: 3 parallel queries per session:
+      1. "{course} {university} syllabus"
+      2. "{course} {university} exam format"
+      3. "{course code} {university} lecture notes"
+  - Why Tavily: Built specifically for AI applications. Returns clean, structured
+    results without HTML noise. Supports academic sources.
+  - Why Brave as fallback: Tavily has monthly rate limits on the free tier.
+    Brave provides independent search results (not Google) with an affordable API.
+
+STREAMING: Server-Sent Events (SSE)
+  - Why streaming: AI generation takes 15-60 seconds. Without streaming, users
+    see a blank screen for a minute before anything appears. With SSE, content
+    appears word by word in real time, which gives instant feedback and keeps
+    users engaged.
+  - Why SSE over WebSockets: SSE is unidirectional (server → client) which is
+    all that is needed here. It is simpler to implement in Next.js API routes,
+    works over standard HTTP, and does not require a persistent socket connection.
+
+FILE PARSING: pdf-parse, officeparser, mammoth (server-side, no external APIs)
+  - Why server-side parsing: Files are uploaded to the server and parsed there.
+    Client-side parsing would expose file contents to the browser's memory and
+    send large binary files to the AI API unnecessarily.
+  - Why no third-party parsing APIs: Avoids data privacy concerns (student
+    lecture slides are academic content that should not be sent to unknown
+    third parties).
+  - pdf-parse: Extracts plain text from PDFs page by page.
+  - officeparser: Extracts text from PPTX (PowerPoint) and DOCX (Word) files.
+  - mammoth: Alternative DOCX parser with better formatting preservation.
+
+STATE MANAGEMENT: Zustand
+  - Why Zustand over Redux: Much less boilerplate. The state for StudyForge is
+    simple: a status string, a raw buffer string, and three arrays (sections,
+    questions, quiz questions). Zustand handles this with minimal code.
+  - Why not React Context: Context causes full subtree re-renders on every state
+    change. During streaming, the rawBuffer updates hundreds of times. Zustand
+    only re-renders components that subscribe to the specific slice they use.
+
+PDF EXPORT: jsPDF (client-side)
+  - Why PDF: The most portable format for study notes. Students want to print or
+    share their generated content. A PDF with StudyForge branding also serves as
+    a quality signal.
+  - Why client-side: Generating PDFs server-side would require a headless
+    browser (Puppeteer) or a paid service. jsPDF runs in the browser, uses no
+    server resources, and generates PDFs instantly.
+  - What is included: Orange header bar, StudyForge branding, diagonal watermark
+    (low opacity), page numbers, full markdown rendering (tables, bold, lists,
+    headings).
+
+VALIDATION: Zod + React Hook Form
+  - Why Zod: Runtime type validation for API request bodies. In TypeScript, types
+    are erased at runtime. Zod ensures that API routes reject malformed requests
+    before they reach the database or AI layer.
+  - Why React Hook Form: Performant form state with minimal re-renders. Integrates
+    directly with Zod for schema-based validation on the upload/create form.
+
+UI: Tailwind CSS v4 + shadcn/ui + Framer Motion
+  - Tailwind: Utility-first CSS. Faster to build responsive layouts without
+    writing custom CSS files.
+  - shadcn/ui: Pre-built accessible components (Tabs, Button, Badge, Skeleton)
+    that match the orange-accented design system.
+  - Framer Motion: Smooth entrance animations for study note sections as they
+    stream in. Makes the streaming experience feel polished.
+
+LICENSE: AGPL-3.0
+  - Why AGPL over MIT: MIT allows companies to take the code, add features, and
+    run a proprietary service without contributing back. AGPL requires that anyone
+    running a modified version of StudyForge as a network service must publish
+    their source code. This protects the open-source nature of the project.
+  - The "A" in AGPL: The key addition over GPL is the network use clause. Normal
+    GPL only requires source distribution when you distribute the binary. AGPL
+    extends this to network services — if you run StudyForge as a SaaS, you must
+    share your changes.
+
+--------------------------------------------------------------------------------
+4. DATABASE SCHEMA — TABLE BY TABLE
+--------------------------------------------------------------------------------
+
+users
+  - Mirrors Supabase Auth. Stores display name, avatar URL, email.
+  - id is a UUID that references auth.users(id) — Supabase's built-in auth table.
+  - Why cascade delete: If a user deletes their account, all their data is removed.
+
+sessions
+  - The central entity. One session = one study generation request.
+  - Contains university_name, course_name, course_code.
+  - status tracks the pipeline stage: pending → parsing → searching →
+    generating → complete (or error).
+  - anon_token: a random token stored in the user's localStorage, used to
+    identify anonymous (not logged-in) users across requests.
+  - Why anon_token: The app works without login. The token lets the app show
+    the user their own sessions without a user account.
+
+uploads
+  - Files attached to a session.
+  - file_type is constrained to pdf, pptx, ppt, docx.
+  - storage_path: the path in Supabase Storage where the file is saved.
+  - parse_status tracks whether the file has been processed.
+
+document_chunks
+  - Text extracted from uploads, split into pages or slides.
+  - chunk_type is either 'page' (from PDF) or 'slide' (from PPTX).
+  - char_count is a generated column (computed automatically by PostgreSQL).
+  - Why chunking: Large documents exceed AI context windows. Chunking allows
+    selecting the most relevant sections to include in the prompt.
+
+web_search_results
+  - Stores the Tavily/Brave search results for each session.
+  - provider records which service was used.
+  - results is a JSONB array of search result objects.
+  - Why store search results: For debugging, caching (don't re-search if
+    regenerating), and auditing what context the AI was given.
+
+generated_notes
+  - The AI's output stored as structured JSON.
+  - sections is a JSONB array of {title, content, exam_tips} objects.
+  - key_concepts is a JSONB array of important terms.
+  - Stores token counts and generation time for cost monitoring.
+
+expected_questions
+  - Individual exam questions extracted from the AI output.
+  - question_type: short_answer, essay, or calculation.
+  - difficulty: easy, medium, hard.
+  - source_hint: where the question came from (slides, past paper, web context).
+  - model_answer: the suggested answer the AI generated.
+
+quizzes
+  - A quiz belongs to a session. Stores the title and total question count.
+  - Why separate from generated_notes: Quizzes are taken interactively and need
+    their own attempt tracking.
+
+quiz_questions
+  - Individual questions within a quiz.
+  - question_type: mcq or short_answer.
+  - options: JSONB array (for MCQ choices).
+  - correct_answer and explanation stored for immediate feedback.
+
+quiz_attempts
+  - Records a user's attempt at a quiz.
+  - answers: JSONB map of {question_id: user_answer}.
+  - score: computed and stored after submission.
+  - Supports both logged-in users (user_id) and anonymous users.
+
+--------------------------------------------------------------------------------
+5. DATA FLOW — HOW A GENERATION WORKS
+--------------------------------------------------------------------------------
+
+Step 1: User fills the form at /create
+  - Enters university, course name, course code
+  - Uploads 1-20 files (PDF, PPTX, DOCX)
+  - No login required
+
+Step 2: File upload (POST /api/upload)
+  - Each file is sent to the server
+  - Server saves the file to Supabase Storage
+  - Server parses the file using pdf-parse/officeparser/mammoth
+  - Text is split into chunks (one per page/slide)
+  - Chunks are saved to document_chunks table
+  - Upload record is updated with parse_status = 'parsed'
+
+Step 3: Session creation (POST /api/sessions)
+  - A session row is created in the database
+  - Session ID is returned to the client
+  - Client is redirected to /session/[id]
+
+Step 4: Generation (POST /api/generate via SSE)
+  - GenerationViewer component makes a POST request
+  - Server fetches all chunks for this session from the database
+  - Server runs 3 parallel Tavily searches (syllabus, exam format, lecture notes)
+  - Server builds a large prompt combining:
+      - Course information (university, course name, code)
+      - Web search results (syllabus, exam format, supplementary notes)
+      - Document chunks (lecture content, bounded by token budget)
+  - Server selects an AI provider (Ollama → Gemini → Claude → OpenAI)
+  - AI generates a structured JSON response
+  - Server streams the response via SSE events:
+      - type: "status" — progress messages
+      - type: "content" — JSON delta (partial text)
+      - type: "complete" — generation done
+      - type: "error" — something went wrong
+
+Step 5: Client-side rendering
+  - GenerationViewer receives SSE events
+  - appendDelta() adds each chunk to rawBuffer in Zustand store
+  - A useEffect watches rawBuffer and calls parseGenerationResponse()
+  - As valid JSON accumulates, sections/questions/quiz are extracted
+  - UI updates in real time as content arrives
+
+Step 6: Save to database
+  - After full generation, server saves to generated_notes, expected_questions,
+    quizzes, and quiz_questions tables
+  - Session status is updated to 'complete'
+
+Step 7: PDF export (client-side)
+  - User clicks "Download Notes / Questions / Quiz"
+  - jsPDF creates a PDF in the browser
+  - Markdown content is parsed and rendered as native PDF elements
+  - Diagonal watermark is applied at 6% opacity
+  - File is downloaded via the browser's Blob API
+
+--------------------------------------------------------------------------------
+6. INFRASTRUCTURE AND CI/CD
+--------------------------------------------------------------------------------
+
+GitHub Repository: github.com/RishavRajSingh44/StudyForge
+
+Branch Protection (on main branch):
+  - Direct pushes to main are blocked
+  - All changes go through Pull Requests
+  - At least 1 approval required before merging
+  - Stale reviews are dismissed when new commits are pushed
+  - Repository owner is in the bypass list (can merge emergency fixes)
+
+CI Pipeline (.github/workflows/ci.yml):
+  - Triggers on: every push and PR to main
+  - Steps:
+      1. Checkout code
+      2. Setup Node.js 20
+      3. Setup pnpm 10 with store caching
+      4. Install dependencies (pnpm install --frozen-lockfile)
+      5. Run ESLint (pnpm lint)
+      6. Run Next.js build (pnpm build)
+  - Why CI: Catches lint errors and build failures before they reach main.
+    Without CI, a broken build could be merged and block all contributors.
+
+Security Pipeline (.github/workflows/security.yml):
+  - Gitleaks: Scans every commit for accidentally committed secrets (API keys,
+    passwords, tokens). Uses --fetch-depth: 0 to scan full git history.
+  - pnpm audit: Checks all dependencies against the npm vulnerability database.
+    Fails on high-severity CVEs.
+  - CodeQL: Static analysis by GitHub. Finds SQL injection patterns, XSS
+    vulnerabilities, and other OWASP Top 10 issues in JavaScript/TypeScript.
+
+CODEOWNERS (.github/CODEOWNERS):
+  - * @RishavRajSingh44
+  - All files require review by the repository owner.
+  - Prevents PRs from being merged without the maintainer's explicit approval.
+
+Dependency Security:
+  - next was upgraded from 16.2.4 to 16.2.6 (patched 8 high CVEs: DoS, SSRF,
+    middleware bypass vulnerabilities)
+  - fast-uri had a path traversal and host confusion CVE. Fixed using pnpm
+    overrides to force all packages that depend on fast-uri to use >=3.1.2
+
+--------------------------------------------------------------------------------
+7. SECURITY DECISIONS
+--------------------------------------------------------------------------------
+
+Anonymous Sessions:
+  - A random UUID token is generated client-side and stored in localStorage
+  - This token is sent with every API request as an identifier
+  - Server validates the token matches the session before returning data
+  - No password, no email required — but sessions are still tied to a device
+
+SUPABASE_SERVICE_ROLE_KEY:
+  - This key bypasses Row Level Security and has full database access
+  - It is NEVER sent to the client (NEXT_PUBLIC_ prefix is not used)
+  - Only used in server-side API routes (app/api/*)
+  - If this key were exposed, an attacker could read/write all user data
+
+Row Level Security (RLS):
+  - Supabase RLS policies ensure users can only query their own sessions
+  - Even if the anon key were misused, RLS blocks cross-user data access
+
+File Upload Security:
+  - File type is validated server-side (not just client-side)
+  - Files are stored in a private Supabase Storage bucket (not publicly accessible)
+  - Signed URLs are used to access files server-side
+
+No Credentials in Git:
+  - .env.local is in .gitignore and was never committed
+  - Only .env.local.example (with placeholder values) is committed
+  - Gitleaks CI job scans every PR for accidental secret commits
+
+--------------------------------------------------------------------------------
+8. PRACTICAL QUESTIONS AND ANSWERS
+--------------------------------------------------------------------------------
+
+Q1: Why did you choose AGPL-3.0 instead of MIT for the license?
+A: MIT allows companies to fork the project, add features, and run it as a
+   commercial SaaS without contributing back. AGPL-3.0 requires that anyone who
+   runs a modified version as a network service must release their source code.
+   Since StudyForge is meant to remain open for students, AGPL protects that
+   openness against proprietary forks.
+
+Q2: Why does StudyForge use Server-Sent Events (SSE) instead of WebSockets?
+A: SSE is unidirectional — the server sends data to the client, and the client
+   never sends data back during streaming. This matches the use case exactly:
+   the AI generates content and the client displays it. WebSockets add two-way
+   communication overhead that isn't needed. SSE works over standard HTTP, is
+   simpler to implement in Next.js API routes, and automatically reconnects.
+
+Q3: How does StudyForge work without a user account?
+A: When a user first visits, a random UUID token (anon_token) is generated and
+   stored in their browser's localStorage. This token is sent with every API
+   request. On the server, sessions are associated with this token. As long as
+   the user uses the same browser, they can access their sessions. This is a
+   common pattern for tools that want zero-friction onboarding.
+
+Q4: Why is the AI waterfall ordered Ollama → Gemini → Claude → OpenAI?
+A: Ollama is first because it's free and local — ideal for self-hosting. If it's
+   not running, Gemini is next because it has a generous free tier. Claude and
+   OpenAI are last because they are paid services. The ordering prioritizes cost
+   for the user. The system automatically detects which provider is available
+   and skips unavailable ones without user intervention.
+
+Q5: How does web search improve the quality of the generated notes?
+A: Without web search, the AI can only work with what's in the uploaded slides.
+   With Tavily, the app fetches the actual course syllabus (so it knows what
+   topics are taught), the exam format (so it knows whether questions are MCQ or
+   essay), and supplementary lecture notes. All three are injected into the AI
+   prompt. This means the generated notes align with what the specific university
+   actually tests, not just generic content about the subject.
+
+Q6: How is token budget management handled for large documents?
+A: If a student uploads 20 PDF files totalling 500 pages, the combined text
+   would exceed the AI's context window. The token budgeting system in
+   lib/utils/ estimates the token count of each chunk (using character count
+   as a proxy). It selects chunks up to a maximum budget, prioritizing earlier
+   slides (introduction/overview content) and ensuring coverage across all
+   uploaded files. Search results consume a portion of the budget, and the
+   course context (university, course name) is always included.
+
+Q7: Why is document_chunks a separate table rather than storing text in uploads?
+A: One upload can contain 200 pages. Storing all text in a single text column
+   would make it impossible to select individual pages, apply per-chunk
+   metadata, or implement semantic search later. The chunks table allows
+   querying by chunk_index, filtering by chunk_type (page vs slide), and
+   extending with vector embeddings for similarity search in future versions.
+
+Q8: What happens if the AI returns malformed JSON during streaming?
+A: The parseGenerationResponse() function is called on rawBuffer every time new
+   content arrives. At most points during streaming, the JSON is incomplete and
+   will throw a parse error. This is expected — the error is caught silently
+   (catch {}) and the next update is tried. Only when the AI has emitted a
+   syntactically valid JSON object does the parser succeed and update the UI.
+
+Q9: Why are pnpm overrides used for fast-uri instead of upgrading it directly?
+A: fast-uri is not a direct dependency of StudyForge — it is a transitive
+   dependency (a dependency of a dependency). pnpm does not allow directly
+   updating transitive dependencies in package.json. The override mechanism
+   forces pnpm to resolve fast-uri to version >=3.1.2 across the entire
+   dependency tree, regardless of what version other packages request.
+
+Q10: How are PDF exports generated without a server?
+A: jsPDF runs entirely in the browser. When the user clicks "Download Notes",
+   a JavaScript function creates a new jsPDF document, draws an orange header
+   bar, adds the StudyForge title, applies a diagonal watermark at 6% opacity,
+   then iterates through every section. Each section's markdown content is
+   parsed line by line: tables are drawn as bordered grids, headings get larger
+   font sizes, bold lines get font weight changes, and lists get bullet/number
+   prefixes. The final document is serialized and downloaded via the browser's
+   Blob API as a .pdf file, with zero server involvement.
+
+Q11: What is the purpose of the CODEOWNERS file?
+A: CODEOWNERS specifies who must review changes to specific files or directories.
+   With "* @RishavRajSingh44" in CODEOWNERS, GitHub automatically requests a
+   review from the repository owner on every PR that touches any file. Combined
+   with branch protection rules, this ensures no PR can be merged without the
+   maintainer's explicit approval, even if another contributor with write access
+   tries to bypass the process.
+
+Q12: Why does the schema use JSONB columns for sections, options, and results?
+A: The structure of an AI response's sections, a quiz question's answer options,
+   or search results cannot be normalized into a fixed schema without losing
+   flexibility. AI models may return varying numbers of exam tips per section,
+   varying numbers of MCQ choices, or varying search result structures. JSONB
+   stores these as flexible structured data while still allowing indexing and
+   querying. It is the correct choice when the shape varies per row.
+
+Q13: How does StudyForge handle errors during generation?
+A: At each stage of the pipeline (parsing, searching, generating), errors are
+   caught and the session status is updated to 'error' with an error_message.
+   On the client, the SSE stream sends an error event, which the GenerationViewer
+   handles by showing an error state with a "Try again" button. The button
+   reloads the page, which re-triggers the generation POST request. Users never
+   see raw stack traces — only human-readable error messages.
+
+Q14: What makes StudyForge suitable for both universities and schools?
+A: The generation prompt is parameterized by university_name, course_name, and
+   course_code. These fields guide both the web search queries (fetching the
+   specific institution's syllabus) and the AI's tone and difficulty calibration.
+   For a secondary school student entering "Year 12 Chemistry" at a local school,
+   the AI generates appropriately levelled content. For a university student
+   entering "COMP3506 Algorithms" at a specific university, the AI generates
+   university-level content matching that course's known format.
+
+Q15: What is the difference between GPL and AGPL, and why does it matter for StudyForge?
+A: GPL (General Public License) requires you to share source code when you
+   distribute the software as a binary. AGPL adds one more trigger: running the
+   software as a network service also counts as distribution. StudyForge is a
+   web app — users interact with it over the network, they never download and
+   run the binary themselves. If StudyForge were under GPL, a company could take
+   the code, improve it, and run it as a paid SaaS without releasing anything.
+   AGPL closes this "application service provider loophole" by requiring source
+   disclosure for network use. This is why AGPL is the standard license for
+   open-source SaaS tools (Grafana, Nextcloud, Mastodon, etc.).
+
+Q16: Can someone use StudyForge commercially under AGPL-3.0?
+A: Yes, but with obligations. They can run StudyForge as a commercial service,
+   charge money for it, and modify it — but they must:
+   1. Make the complete modified source code available to every user of their
+      service (typically via a "Source Code" link in the UI or footer).
+   2. Keep the AGPL-3.0 license on the modified work.
+   3. Not add restrictions beyond what AGPL allows.
+   If a company wants to run a modified version privately without releasing
+   their changes, they need a separate commercial license from the copyright
+   holder (dual licensing model).
+
+Q17: What is dual licensing and how could StudyForge use it?
+A: Dual licensing means offering the same software under two different licenses
+   simultaneously. For StudyForge:
+   - Open-source tier: AGPL-3.0 (free, but copyleft obligations apply)
+   - Commercial tier: A private commercial license (paid, no copyleft)
+   This is the model used by MongoDB, GitLab, and Qt. A company that doesn't
+   want to open-source their modifications can buy a commercial license. This
+   generates revenue to sustain the project while keeping it free for personal
+   and academic use. The copyright holder (project author) must own all
+   copyright contributions to offer dual licensing — hence requiring contributors
+   to agree that their contributions are licensed under AGPL (see CONTRIBUTING.md).
+
+Q18: What does "open source" mean vs "source available" vs "free software"?
+A: These are related but distinct:
+   - Open source (OSI definition): Source code is available, can be freely used,
+     modified, and distributed. Must allow commercial use. AGPL qualifies.
+   - Free software (FSF definition): Software that respects user freedom —
+     freedom to run, study, modify, and distribute. AGPL qualifies. "Free" means
+     freedom, not price.
+   - Source available: Source code is published but with restrictions (cannot
+     be used commercially, cannot be forked, etc.). Not truly open source.
+     Examples: BUSL (used by HashiCorp/Terraform), SSPL (used by MongoDB before
+     they moved). These do NOT qualify as open source under OSI definition.
+   StudyForge is both open source (OSI) and free software (FSF) under AGPL-3.0.
+
+Q19: What is a CLA (Contributor License Agreement) and does StudyForge need one?
+A: A CLA is a legal agreement that contributors sign, granting the project owner
+   additional rights over their contributions (typically the right to relicense).
+   StudyForge does not currently have a formal CLA. For dual licensing to work
+   cleanly (see Q17), a CLA or DCO (Developer Certificate of Origin) is needed
+   to ensure the maintainer can relicense contributions. Without one, every
+   contributor retains partial copyright, making it impossible to offer a
+   commercial license without contacting all contributors. For a small project
+   with one maintainer, this isn't urgent — but as contributions grow, a DCO
+   (a simple sign-off in commit messages) should be added.
+
+Q20: How does StudyForge's CONTRIBUTING.md protect the project?
+A: CONTRIBUTING.md does several things:
+   - States that by contributing, contributors license their work under AGPL-3.0
+     (the "By contributing..." clause). This is the informal equivalent of a CLA.
+   - Prohibits committing secrets or credentials — enforced by the Gitleaks CI job.
+   - Prohibits breaking changes to the AI output schema without a migration path
+     — protects users who depend on the data structure.
+   - Prohibits modifying existing migration files — protects deployed databases
+     from breaking schema changes.
+   - Requires PRs to target main, require approval, and stay focused (one change
+     per PR) — maintains code review quality as the project scales.
+
+Q21: What is the difference between a permissive license (MIT/Apache) and a
+     copyleft license (GPL/AGPL)? When would you choose each?
+A: Permissive licenses (MIT, Apache 2.0, BSD) allow anyone to use, modify, and
+   redistribute the code with minimal restrictions. You can include MIT-licensed
+   code in a proprietary product and never release your changes. Choose permissive
+   when: you want maximum adoption, you're writing a library, or you want
+   companies to be able to use your work without friction.
+
+   Copyleft licenses (GPL, LGPL, AGPL, MPL) require derivative works to be
+   distributed under the same license. They "infect" the derivative work.
+   Choose copyleft when: you want all improvements to flow back to the community,
+   you're building a complete application (not just a library), and you want to
+   prevent proprietary forks from free-riding on your work.
+
+   For StudyForge, copyleft (AGPL) was chosen because it is a complete
+   application, it serves a community (students), and the maintainer wants all
+   improvements to benefit all users — not just the companies that can afford to
+   hire developers to enhance a private fork.
+
+Q22: What OSS governance practices does StudyForge follow?
+A: StudyForge follows several standard OSS governance practices:
+   - CONTRIBUTING.md: Documents how to contribute, commit style, PR rules.
+   - CODEOWNERS: Defines who is responsible for reviewing changes.
+   - Branch protection: Enforces the contribution process technically.
+   - Issue-first policy: Non-trivial changes require an issue discussion before
+     a PR (prevents wasted work on rejected directions).
+   - Semantic commit messages (feat/fix/docs/chore/refactor): Creates a readable
+     git history and enables automated changelog generation.
+   - CI on every PR: Lint and build must pass before review.
+   - Security scanning: Gitleaks, CodeQL, and dependency audit on every PR.
+   - LICENSE file at root: Clearly states terms for all users and contributors.
+
+Q23: If a student at a university uses StudyForge to generate notes and submits
+     them as their own work, is that a StudyForge problem?
+A: This is an academic integrity question, not a legal question about StudyForge.
+   StudyForge is a study tool — it generates study notes and practice questions
+   to help students understand material, analogous to a tutor or textbook.
+   The AGPL license does not restrict how the generated output is used (licenses
+   govern the software, not its output). Academic integrity policies are the
+   responsibility of the student and their institution. StudyForge is no more
+   responsible for misuse than a calculator manufacturer is responsible for
+   students using a calculator during a no-calculator exam.
+
+Q24: What does "self-hostable" mean and why is it important for an OSS project?
+A: Self-hostable means the software can be deployed on infrastructure you control,
+   not just used as a cloud service run by someone else. For StudyForge, this
+   means a student or institution can:
+   - Clone the repo and run it on their own server
+   - Use Ollama for fully offline, no-cost AI generation
+   - Connect their own Supabase instance (or any PostgreSQL database)
+   - Never send their data to a third-party StudyForge service
+
+   This matters for OSS because: (1) it prevents vendor lock-in, (2) it ensures
+   the software remains useful even if the original maintainer's hosted service
+   shuts down, (3) it gives privacy-conscious users (institutions with FERPA/GDPR
+   obligations) a path to full data control. Self-hostability is one of the core
+   promises of the AGPL + OSS combination.
+
+Q25: If you were to extend StudyForge, what would you add next?
+A: The most impactful additions would be:
+   1. Vector embeddings on document_chunks — enables semantic search to find
+      the most relevant slides for a given topic rather than using all slides.
+   2. Spaced repetition for quiz questions — track which questions a student
+      gets wrong and resurface them at optimal intervals (Anki-style).
+   3. Collaborative sessions — allow a study group to share a session and
+      contribute their own slides to a collective generation.
+   4. Exam paper parsing — if a past exam PDF is uploaded, automatically detect
+      it as a past paper and extract actual questions from it to improve the
+      expected questions output.
+   5. Embedding-based notes search — let students type a topic and find the
+      relevant section in their generated notes instantly.
+
+--------------------------------------------------------------------------------
+9. DEPLOYMENT NOTES
+--------------------------------------------------------------------------------
+
+Recommended platform: Vercel (zero-config Next.js deployment)
+
+Required environment variables for production:
+  NEXT_PUBLIC_SUPABASE_URL         — from Supabase project settings
+  NEXT_PUBLIC_SUPABASE_ANON_KEY    — from Supabase project settings (public)
+  SUPABASE_SERVICE_ROLE_KEY        — from Supabase project settings (secret)
+  NEXT_PUBLIC_APP_URL              — your production URL
+  GEMINI_API_KEY or ANTHROPIC_API_KEY or OPENAI_API_KEY — at least one required
+  TAVILY_API_KEY                   — strongly recommended
+
+Note on Ollama: Ollama requires a local process running on the same machine.
+  It cannot run on Vercel (serverless). On Vercel, configure at least one cloud
+  AI provider (Gemini recommended for cost). Ollama works when self-hosting on
+  a VPS or running locally.
+
+Before deploying:
+  - Add error.tsx and not-found.tsx pages in app/ directory
+  - Merge all open PRs into main
+  - Set required status checks in branch protection (Lint & Build, Security)
+  - Run all Supabase migrations (001, 002, 003) in production project
+  - Create private 'uploads' bucket in Supabase Storage
+
+--------------------------------------------------------------------------------
+10. PROJECT SUMMARY
+--------------------------------------------------------------------------------
+
+StudyForge is a full-stack, AI-powered web application built with modern
+open-source tools. It demonstrates:
+
+  - Multi-provider AI integration with graceful fallback
+  - Real-time streaming architecture using SSE
+  - Secure, scalable database design with PostgreSQL
+  - Client-side PDF generation with rich formatting
+  - Professional OSS practices: CI/CD, security scanning, branch protection,
+    contributing guidelines, AGPL licensing
+  - Privacy-respecting anonymous sessions
+  - Self-hostable with local AI (Ollama) — zero cost to run
+
+The project targets a real gap in the ed-tech space: tools that generate
+study materials tailored to specific institutions, not generic summaries.
+By combining web search augmentation with uploaded lecture content, StudyForge
+produces notes and questions that reflect the actual exam format and syllabus
+of the student's course.
+
+================================================================================
+  END OF DOCUMENT
+  StudyForge — github.com/RishavRajSingh44/StudyForge
+  License: AGPL-3.0
+================================================================================

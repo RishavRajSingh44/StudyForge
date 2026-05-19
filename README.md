@@ -4,6 +4,12 @@
 
 No account required. Works offline with a local Ollama model. Self-hostable.
 
+[![CI](https://github.com/RishavRajSingh44/StudyForge/actions/workflows/ci.yml/badge.svg)](https://github.com/RishavRajSingh44/StudyForge/actions/workflows/ci.yml)
+[![Security Scan](https://github.com/RishavRajSingh44/StudyForge/actions/workflows/security.yml/badge.svg)](https://github.com/RishavRajSingh44/StudyForge/actions/workflows/security.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/RishavRajSingh44/StudyForge/badge)](https://securityscorecards.dev/viewer/?uri=github.com/RishavRajSingh44/StudyForge)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-orange.svg)](./LICENSE)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](./CODE_OF_CONDUCT.md)
+
 ---
 
 ## Architecture
@@ -174,17 +180,22 @@ types/              TypeScript interfaces for generation output, uploads
 
 ## Contributing
 
-Contributions are welcome. Please open an issue before starting a large change so we can discuss the approach.
+Contributions are welcome. Read [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide — including setup, workflow, commit format, and PR rules.
 
-```bash
-# Fork the repo, then:
-git checkout -b feat/your-feature
-# make your changes
-pnpm lint
-git commit -m "feat: your feature"
-git push origin feat/your-feature
-# Open a pull request
-```
+New to open source? Check the [Good First Issues](https://github.com/RishavRajSingh44/StudyForge/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) label for beginner-friendly tasks.
+
+---
+
+## Community
+
+| Document | Purpose |
+|----------|---------|
+| [CONTRIBUTING.md](./CONTRIBUTING.md) | How to contribute code, docs, and fixes |
+| [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) | Community standards and enforcement |
+| [CLA.md](./CLA.md) | Contributor License Agreement |
+| [SECURITY.md](./SECURITY.md) | How to report vulnerabilities |
+| [docs/MANUAL.md](./docs/MANUAL.md) | Full user manual and download instructions |
+| [docs/TESTING.md](./docs/TESTING.md) | Manual test checklist + planned automated tests |
 
 ---
 
@@ -193,3 +204,4 @@ git push origin feat/your-feature
 AGPL-3.0 — see [LICENSE](./LICENSE)
 
 This means if you run a modified version of StudyForge as a network service, you must make your modified source code available to users. For commercial use without AGPL obligations, contact us for a commercial license.
+

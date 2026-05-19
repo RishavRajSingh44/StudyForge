@@ -186,6 +186,10 @@ export async function POST(req: NextRequest) {
         }
 
         if (parsed.quiz.length > 0) {
+          // DB question_type only allows 'mcq' | 'short_answer'
+          const normaliseType = (t: string): 'mcq' | 'short_answer' =>
+            t === 'mcq' ? 'mcq' : 'short_answer'
+
           const { data: quizRow } = await supabase
             .from('quizzes')
             .insert({
@@ -201,7 +205,7 @@ export async function POST(req: NextRequest) {
               parsed.quiz.map((q, i) => ({
                 quiz_id: quizRow.id,
                 question_index: i,
-                question_type: q.type,
+                question_type: normaliseType(q.type),
                 question_text: q.question,
                 options: q.options ?? null,
                 correct_answer: q.correct_answer,

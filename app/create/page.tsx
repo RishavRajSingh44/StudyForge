@@ -185,6 +185,7 @@ export default function CreatePage() {
             <Button
               type="submit"
               disabled={uploading || !anonToken}
+              suppressHydrationWarning
               className="w-full bg-orange-500 hover:bg-orange-600 text-white"
               size="lg"
             >

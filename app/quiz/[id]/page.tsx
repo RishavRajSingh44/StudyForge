@@ -53,7 +53,9 @@ export default function QuizPage() {
   const handleSubmit = () => {
     let s = 0
     for (const q of questions) {
-      if (answers[q.id]?.trim().toLowerCase() === q.correct_answer.trim().toLowerCase()) s++
+      const userAnswer = (answers[q.id] ?? '').trim().toUpperCase()
+      const correctAnswer = q.correct_answer.trim().toUpperCase()
+      if (userAnswer === correctAnswer) s++
     }
     submit(s)
   }
@@ -109,9 +111,13 @@ export default function QuizPage() {
           {current.question_type === 'mcq' && current.options && (
             <div className="space-y-2">
               {current.options.map((opt) => {
-                const letter = opt.slice(0, 1)
+                const letter = opt.match(/^([A-D])[.)]\s/i)?.[1]?.toUpperCase() ?? opt
                 const selected = answers[current.id] === letter
-                const isCorrect = letter === current.correct_answer
+                const correctNorm = current.correct_answer.trim().toUpperCase()
+                const isCorrect = letter === correctNorm ||
+                  opt.trim().toUpperCase() === correctNorm ||
+                  opt.trim().toUpperCase().startsWith(correctNorm + '.') ||
+                  opt.trim().toUpperCase().startsWith(correctNorm + ')')
                 const showResult = revealed[currentIndex]
 
                 return (

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security Vulnerability
+    url: https://github.com/RishavRajSingh44/StudyForge/security/advisories/new
+    about: Report a security vulnerability privately (do NOT open a public issue)
+  - name: Question / Help
+    url: https://github.com/RishavRajSingh44/StudyForge/discussions
+    about: Ask a question or get help with setup
