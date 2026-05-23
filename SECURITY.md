@@ -5,7 +5,7 @@
 | Version | Supported |
 |---------|-----------|
 | latest (main) | Yes |
-| older commits | No — please update to latest |
+| older commits | No  |
 
 ## Reporting a Vulnerability
 
