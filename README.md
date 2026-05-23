@@ -16,10 +16,7 @@ No account required. Works offline with a local Ollama model. Self-hostable.
 
 | Diagram | |
 |---|---|
-| System Overview | ![System Overview](docs/diagrams/StudyForge%20System%20Overview.png) |
-| Data Flow | ![Data Flow](docs/diagrams/StudyForge%20Data%20Flow.png) |
 | Database Schema | ![Database Schema](docs/diagrams/StudyForge%20Database%20Schema.png) |
-| Component Architecture | ![Component Architecture](docs/diagrams/StudyForge%20Component%20Architecture.png) |
 
 > PlantUML source files are in [`docs/diagrams/`](docs/diagrams/).
 
