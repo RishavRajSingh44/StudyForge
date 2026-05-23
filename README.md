@@ -112,7 +112,7 @@ Results are injected into the AI prompt alongside your uploaded slides. Without 
 
 ## Environment Variables
 
-Copy `.env.local.example` to `.env.local` and fill in the values.
+Copy `.env.local.example` to `.env.local` and fill in the values. Depending which AI provider you are using you need to provide the API key for it.
 
 | Variable | Required | Description |
 |---|---|---|
