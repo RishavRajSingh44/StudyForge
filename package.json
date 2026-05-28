@@ -47,7 +47,8 @@
   },
   "pnpm": {
     "overrides": {
-      "fast-uri": ">=3.1.2"
+      "fast-uri": ">=3.1.2",
+      "eslint": "^9"
     }
   },
   "devDependencies": {
