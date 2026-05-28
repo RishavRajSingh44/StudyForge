@@ -1,6 +1,17 @@
 # Testing Guide
 
-StudyForge does not yet have an automated test suite — this is a known gap and a great area for contributors to help with. This document covers how to manually test the application and what automated tests we plan to add.
+StudyForge has a unit test suite (Vitest) for core logic and a manual testing checklist for UI flows. Automated integration tests (Playwright) are planned and a great area for contributors.
+
+---
+
+## Running Tests
+
+```bash
+pnpm test          # run all tests once (CI mode)
+pnpm test:watch    # watch mode for development
+```
+
+All PRs must pass `pnpm test` with zero failures before merging.
 
 ---
 
@@ -43,13 +54,13 @@ Ensure your `.env.local` has valid Supabase credentials and at least one AI prov
 
 - [ ] Page loads and immediately starts generation (POST to `/api/generate`)
 - [ ] Status banner shows "Searching web..." then "Generating..."
-- [ ] Notes tab: sections appear progressively as the AI streams
+- [ ] Topics tab: sections appear progressively as the AI streams
 - [ ] Sidebar TOC appears on desktop (≥768px) once sections arrive
 - [ ] Clicking a TOC item scrolls to that section
 - [ ] Expected Questions tab: questions appear with difficulty badges
 - [ ] Clicking a question expands the model answer
 - [ ] Quiz tab: shows question count and "Start Quiz" button after generation completes
-- [ ] Download Notes → downloads a PDF
+- [ ] Download Topics → downloads a PDF
 - [ ] Download Questions → downloads a PDF
 - [ ] Download Quiz → downloads a PDF
 - [ ] PDFs contain: header, watermark, page numbers, readable content (no raw markdown)
@@ -111,40 +122,31 @@ A successful build confirms:
 
 ---
 
-## Planned Automated Tests
+## Automated Tests (Vitest)
 
-These are not yet implemented. If you want to contribute, see the [good first issues](https://github.com/RishavRajSingh44/StudyForge/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) list.
+Run with `pnpm test`. Currently covers:
 
-### Unit tests (Vitest)
+| File | Tests |
+|------|-------|
+| `lib/ai/response-parser.ts` | 10 tests — clean JSON, fence stripping, `<think>` removal, jsonrepair fallback, prose extraction |
+
+### Planned unit tests
 
 | Target | What to test |
 |--------|-------------|
-| `lib/ai/response-parser.ts` | Valid JSON, malformed JSON, JSON with `<think>` blocks, JSON with markdown fences |
 | `lib/utils/chunk-text.ts` | Token budget stays within limit, empty input, single large chunk |
 | `lib/utils/pdf-export.ts` | Functions return without throwing, correct filename patterns |
 | `lib/hooks/useAnonymousSession.ts` | Token is generated and persisted in localStorage |
 
-### Integration tests (Playwright)
+### Planned integration tests (Playwright)
 
 | Flow | What to test |
 |------|-------------|
-| Full generation flow | Upload a small PDF → generate → notes appear |
+| Full generation flow | Upload a small PDF → generate → topics appear |
 | Quiz flow | Complete a quiz → score screen appears |
 | PDF download | Click download → file is downloaded with correct MIME type |
 
-### Setup Vitest (when ready to contribute)
-
-```bash
-pnpm add -D vitest @vitejs/plugin-react jsdom @testing-library/react
-```
-
-Add to `package.json`:
-```json
-"scripts": {
-  "test": "vitest run",
-  "test:watch": "vitest"
-}
-```
+Want to contribute tests? See the [good first issues](https://github.com/RishavRajSingh44/StudyForge/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) list.
 
 ---
 
@@ -154,6 +156,7 @@ The following checks run automatically on every PR via GitHub Actions:
 
 | Check | File | What it does |
 |-------|------|-------------|
+| Test | `.github/workflows/ci.yml` | Vitest unit tests |
 | Lint & Build | `.github/workflows/ci.yml` | ESLint + Next.js build |
 | Secret Scanning | `.github/workflows/security.yml` | Gitleaks scans all commits |
 | Dependency Audit | `.github/workflows/security.yml` | pnpm audit --audit-level=high |

@@ -161,7 +161,7 @@ Generation takes 30–90 seconds depending on your AI provider and document size
 
 ## 6. Understanding Your Study Pack
 
-### Notes tab
+### Topics tab
 
 - **Sections** — topic-by-topic breakdown of your lecture content
 - **Exam Tips** — highlighted in an orange box below each section
@@ -186,7 +186,7 @@ Every tab has a **Download** button in the top-right corner:
 
 | Button | Downloads |
 |--------|-----------|
-| Download Notes | All study notes as a branded PDF |
+| Download Topics | All study topics as a branded PDF |
 | Download Questions | All expected questions + model answers as PDF |
 | Download Quiz | All quiz questions + answers as PDF |
 

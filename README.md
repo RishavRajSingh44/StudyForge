@@ -13,6 +13,24 @@ No account required. Works offline with a local Ollama model. Self-hostable.
 
 ---
 
+## Why StudyForge?
+
+Every student uploads lecture slides to ChatGPT and asks "make me notes". StudyForge does what that prompt can't.
+
+| Tool | Problem |
+|------|---------|
+| ChatGPT / Gemini (raw) | Generic output — knows nothing about your university, syllabus, or exam style |
+| Notability AI, Adobe AI | Requires an account and subscription; sends your documents to a third-party cloud |
+| Manual prompt engineering | Produces notes, questions, *or* a quiz — never all three in one structured pass |
+
+**StudyForge is different in three ways:**
+
+1. **Course-aware, not generic** — before generating anything it searches for your actual syllabus, your university's exam format, and past papers. The output is calibrated to how *your* institution sets exams.
+2. **Private by design** — run it with Ollama and your slides never leave your machine. No account required, nothing sent to a third party.
+3. **Open source forever** — no paywall, no feature gating. A university can deploy it for their entire student body at zero cost.
+
+---
+
 ## Architecture
 
 | Diagram | |
@@ -28,10 +46,10 @@ No account required. Works offline with a local Ollama model. Self-hostable.
 - **Course-aware generation** — enter your university and course code; the AI tailors everything to your institution's exam style
 - **Web search augmentation** — automatically searches for your course syllabus, exam format, and lecture notes before generating
 - **Multi-format upload** — PDF, PPTX, DOCX lecture slides and past exam papers (up to 20 files)
-- **Structured study notes** — sections with exam tips, memory tricks, key concepts, and a revision sheet
+- **Structured study topics** — sections with exam tips, memory tricks, key concepts, and a revision sheet
 - **Expected exam questions** — 15+ questions with model answers, difficulty, probability scores, mark weightage, and reasoning
 - **Interactive quiz** — 20+ questions: MCQ, true/false, short answer, fill-in-the-blank, assertion-reason
-- **PDF export** — download notes, questions, or quiz as a branded PDF with watermark
+- **PDF export** — download topics, questions, or quiz as a branded PDF with watermark
 - **Streaming UI** — results stream in real time as the AI generates
 - **Multi-provider AI** — Ollama (local/free) → Gemini → Claude → OpenAI, automatic fallback
 - **No login required** — anonymous sessions work out of the box
@@ -144,6 +162,7 @@ Copy `.env.local.example` to `.env.local` and fill in the values. Depending whic
 | State | Zustand + SSE streaming |
 | Validation | Zod + React Hook Form |
 | PDF export | jsPDF (client-side, branded + watermark) |
+| Testing | Vitest |
 
 ---
 
@@ -153,7 +172,7 @@ Copy `.env.local.example` to `.env.local` and fill in the values. Depending whic
 app/
   (marketing)/      Landing page
   create/           Upload + course input form
-  session/[id]/     Generation viewer (notes, questions, quiz)
+  session/[id]/     Generation viewer (topics, questions, quiz)
   quiz/[id]/        Interactive quiz runner
   api/
     sessions/       Create / fetch sessions
@@ -176,6 +195,24 @@ types/              TypeScript interfaces for generation output, uploads
 
 ---
 
+## Roadmap
+
+Features planned or in progress — contributions welcome:
+
+| Feature | Status |
+|---------|--------|
+| Flashcard mode from key concepts | Planned |
+| Session history dashboard | Planned |
+| Topic confidence self-assessment | Planned |
+| Pomodoro study timer | Planned |
+| i18n / multi-language UI | Planned |
+| Accessibility (WCAG AA) | Planned |
+| Ollama auto-detection & setup guide | Planned |
+
+See [open issues](https://github.com/RishavRajSingh44/StudyForge/issues) to pick something up.
+
+---
+
 ## Contributing
 
 Contributions are welcome. Read [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide — including setup, workflow, commit format, and PR rules.
@@ -193,7 +230,7 @@ New to open source? Check the [Good First Issues](https://github.com/RishavRajSi
 | [CLA.md](./CLA.md) | Contributor License Agreement |
 | [SECURITY.md](./SECURITY.md) | How to report vulnerabilities |
 | [docs/MANUAL.md](./docs/MANUAL.md) | Full user manual and download instructions |
-| [docs/TESTING.md](./docs/TESTING.md) | Manual test checklist + planned automated tests |
+| [docs/TESTING.md](./docs/TESTING.md) | Automated and manual test guide |
 
 ---
 
@@ -202,4 +239,3 @@ New to open source? Check the [Good First Issues](https://github.com/RishavRajSi
 AGPL-3.0 — see [LICENSE](./LICENSE)
 
 This means if you run a modified version of StudyForge as a network service, you must make your modified source code available to users. For commercial use without AGPL obligations, contact us for a commercial license.
-
