@@ -60,7 +60,7 @@
     "eslint": "^10",
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "vitest": "^3.2.4"
+    "typescript": "^6",
+    "vitest": "^4.1.7"
   }
 }
