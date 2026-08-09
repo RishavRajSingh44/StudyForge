@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { BookOpen, Globe, Zap, CheckCircle } from 'lucide-react'
 
 const features = [
@@ -29,11 +30,14 @@ export default function LandingPage() {
           <span className="font-semibold text-lg tracking-tight">
             Study<span className="text-orange-500">Forge</span>
           </span>
-          <Link href="/create">
-            <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white">
-              Get Started
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Link href="/create">
+              <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white">
+                Get Started
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 

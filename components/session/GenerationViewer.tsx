@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { ChevronRight, AlertCircle, RefreshCw, Download } from 'lucide-react'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { useGenerationStore } from '@/lib/stores/generation-store'
 import { parseGenerationResponse } from '@/lib/ai/response-parser'
 import { downloadNotesPDF, downloadQuestionsPDF, downloadQuizPDF } from '@/lib/utils/pdf-export'
@@ -121,11 +122,14 @@ export default function GenerationViewer({ sessionId, initialStatus }: Props) {
         <Link href="/" className="font-semibold text-base tracking-tight">
           Study<span className="text-orange-500">Forge</span>
         </Link>
-        {status === 'generating' && (
-          <span className="text-sm text-gray-500 dark:text-gray-400 tabular-nums">
-            {progress}%
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {status === 'generating' && (
+            <span className="text-sm text-gray-500 dark:text-gray-400 tabular-nums">
+              {progress}%
+            </span>
+          )}
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Progress bar — full width, sits just below header */}

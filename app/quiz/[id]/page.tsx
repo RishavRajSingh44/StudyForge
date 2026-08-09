@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle, XCircle, ChevronRight, ChevronLeft } from 'lucide-react'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { useQuizStore } from '@/lib/stores/quiz-store'
 
 interface QuizQuestion {
@@ -102,6 +103,7 @@ export default function QuizPage() {
             Study<span className="text-orange-500">Forge</span>
           </Link>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <Link href={`/session/${params.id}`}>
               <Button variant="outline" size="sm">← Back to Notes</Button>
             </Link>
