@@ -99,6 +99,11 @@ pnpm dev
 Open [http://localhost:3000](http://localhost:3000).
 
 ---
+**Homepage**
+
+<img width="1512" height="863" alt="image" src="https://github.com/user-attachments/assets/52c8dda6-4a19-457e-a7bb-6edcfb82a1d4" />
+
+---
 
 ## AI Providers
 
