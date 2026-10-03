@@ -61,14 +61,18 @@ Look for issues tagged [`good first issue`](https://github.com/RishavRajSingh44/
 |------|-------------|
 | **UI copy** | Fix typos or improve placeholder text in form inputs |
 | **Accessibility** | Add `aria-label` to icon-only buttons (Download, Remove file, etc.) |
+| **Accessibility** | Fix color contrast — `text-orange-500` on white fails WCAG AA; shift to `orange-600` for text elements |
 | **Landing page** | Add a footer with license info and GitHub link |
 | **Error messages** | Make error messages in the create form more descriptive |
 | **Dark mode** | Fix any components that don't respond correctly to dark mode |
 | **README** | Improve setup instructions for Windows users |
-| **PDF export** | Fix edge cases — e.g. very long section titles overflowing the header |
+| **PDF export** | Fix `stripInlineMarkdown` crash when `question`, `option`, or `explanation` fields are `undefined` — add a null guard so `undefined` returns `''` instead of throwing (`lib/utils/pdf-export.ts:251`) |
 | **Quiz UX** | Show a "correct answer was X" message for short-answer questions on submit |
-| **Unit tests** | Add Vitest tests for `lib/ai/response-parser.ts` (see [Testing Guide](./docs/TESTING.md)) |
+| **Unit tests** | Add Vitest tests for `lib/utils/chunk-text.ts` or `lib/hooks/useAnonymousSession.ts` (see [Testing Guide](./docs/TESTING.md)) |
 | **Loading states** | Add a skeleton loader to the quiz page while the quiz is fetching |
+| **Flashcards** | Add a Flashcards tab to the session viewer using existing `key_concepts` data — pure frontend, no API changes |
+| **Pomodoro timer** | Add a built-in 25-min study timer to the session viewer — pure client-side, no backend |
+| **i18n** | Extract UI strings to `messages/en.json` using `next-intl` and translate to one additional language |
 
 If you're not sure where to start, open an issue and say "I'd like to contribute — what's a good first task?" and the maintainer will help you find something suitable.
 
@@ -112,7 +116,7 @@ See the full [User Manual](./docs/MANUAL.md) for detailed setup instructions inc
 app/
   (marketing)/        Landing page
   create/             Upload form + course input
-  session/[id]/       Generation viewer (Notes, Questions, Quiz tabs)
+  session/[id]/       Generation viewer (Topics, Questions, Quiz tabs)
   quiz/[id]/          Interactive quiz runner
   api/
     sessions/         Create / fetch sessions

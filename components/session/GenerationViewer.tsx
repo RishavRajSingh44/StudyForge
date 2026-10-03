@@ -154,7 +154,7 @@ export default function GenerationViewer({ sessionId, initialStatus }: Props) {
             </div>
           </div>
           <p className="text-xs text-gray-400 dark:text-gray-600">
-            Your notes, expected questions, and quiz are being generated — this takes 2–5 minutes.
+            Your topics, expected questions, and quiz are being generated — this takes 2–5 minutes.
           </p>
         </div>
       )}
@@ -201,7 +201,7 @@ export default function GenerationViewer({ sessionId, initialStatus }: Props) {
               <div className="border-b border-gray-200 dark:border-gray-800 px-6">
                 <TabsList className="h-12 bg-transparent gap-1">
                   <TabsTrigger value="notes" className="data-[state=active]:border-b-2 data-[state=active]:border-orange-500 rounded-none">
-                    Notes
+                    Topics
                   </TabsTrigger>
                   <TabsTrigger value="questions" className="data-[state=active]:border-b-2 data-[state=active]:border-orange-500 rounded-none">
                     Expected Questions
@@ -267,7 +267,7 @@ function NotesTab({ sections, isGenerating }: { sections: NoteSection[]; isGener
             <Skeleton className="h-4 w-4/6" />
           </>
         ) : (
-          <p className="text-gray-400 text-sm">Notes will appear here as they generate.</p>
+          <p className="text-gray-400 text-sm">Topics will appear here as they generate.</p>
         )}
       </div>
     )
@@ -282,7 +282,7 @@ function NotesTab({ sections, isGenerating }: { sections: NoteSection[]; isGener
           onClick={() => downloadNotesPDF(sections)}
         >
           <Download className="w-4 h-4 mr-1.5" />
-          Download Notes
+          Download Topics
         </Button>
       </div>
       {sections.map((s, i) => (
