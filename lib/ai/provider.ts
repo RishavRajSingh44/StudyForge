@@ -5,7 +5,27 @@ export async function streamGeneration(
   userPrompt: string,
   onDelta: (delta: string) => void,
 ): Promise<string> {
-  // Ollama (local) takes priority — free, no quota
+  // Universal OpenAI-compatible provider (e.g. Groq) takes top priority when configured
+  if (env.AI_API_KEY && env.AI_MODEL) {
+    try {
+      const { streamWithUniversal } = await import('./universal')
+      return await streamWithUniversal(systemPrompt, userPrompt, onDelta)
+    } catch (universalErr) {
+      console.warn('[provider] Universal provider failed, trying fallbacks:', (universalErr as Error).message)
+    }
+  }
+
+  // OpenAI takes priority as the default provider
+  if (env.OPENAI_API_KEY) {
+    try {
+      const { streamWithOpenAI } = await import('./openai')
+      return await streamWithOpenAI(systemPrompt, userPrompt, onDelta)
+    } catch (openaiErr) {
+      console.warn('[provider] OpenAI failed, trying fallbacks:', (openaiErr as Error).message)
+    }
+  }
+
+  // Ollama (local) — free, no quota
   try {
     const { streamWithOllama } = await import('./ollama')
     return await streamWithOllama(systemPrompt, userPrompt, onDelta)
@@ -31,10 +51,5 @@ export async function streamGeneration(
     }
   }
 
-  if (env.OPENAI_API_KEY) {
-    const { streamWithOpenAI } = await import('./openai')
-    return streamWithOpenAI(systemPrompt, userPrompt, onDelta)
-  }
-
-  throw new Error('No AI provider available. Configure at least one of: OLLAMA, GEMINI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY')
+  throw new Error('No AI provider available. Configure at least one of: AI_API_KEY+AI_MODEL, OPENAI_API_KEY, OLLAMA, GEMINI_API_KEY, ANTHROPIC_API_KEY')
 }
