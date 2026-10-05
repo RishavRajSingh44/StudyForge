@@ -13,7 +13,6 @@ export async function parsePptx(
   const slides = raw
     .split(/\n{3,}|\f/)
     .filter((slide) => slide.trim().length > 0)
-
   return slides.map((slide, i) => {
     const cleaned = cleanText(truncateChunk(slide))
     const words = cleaned.split(/\s+/).filter(Boolean)
