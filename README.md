@@ -13,6 +13,18 @@ No account required. Works offline with a local Ollama model. Self-hostable.
 
 ---
 
+## Live Deployment
+
+The public StudyForge demo is deployed on **Render**:
+
+**https://studyforge-8cdo.onrender.com**
+
+The hosted deployment uses **Google Gemini 3.8 Flash** (`gemini-3.8-flash`) for AI generation.
+
+StudyForge also supports **Ollama with configurable local models** for self-hosted and offline use.
+
+---
+
 ## Why StudyForge?
 
 Every student uploads lecture slides to ChatGPT and asks "make me notes". StudyForge does what that prompt can't.
