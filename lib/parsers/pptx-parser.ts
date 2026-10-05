@@ -7,19 +7,12 @@ export async function parsePptx(
 ): Promise<ParsedChunk[]> {
   const officeparser = await import('officeparser')
 
-  const ast = await officeparser.parseOffice(buffer, {
-    outputErrorToConsole: true,
-  })
-
-  // Convert the AST to plain text before using string operations.
-  const { value: raw } = await (ast as typeof ast & {
-    to: (format: 'text') => Promise<{ value: string }>
-  }).to('text')
+  const ast = await officeparser.parseOffice(buffer)
+  const { value: raw } = await ast.to('text')
 
   const slides = raw
     .split(/\n{3,}|\f/)
     .filter((slide) => slide.trim().length > 0)
-
   return slides.map((slide, i) => {
     const cleaned = cleanText(truncateChunk(slide))
     const words = cleaned.split(/\s+/).filter(Boolean)

@@ -12,7 +12,7 @@ create table if not exists public.users (
 create table if not exists public.sessions (
   id              uuid primary key default gen_random_uuid(),
   user_id         uuid references public.users(id) on delete set null,
-  anon_token      text unique,
+  anon_token      text,
   university_name text not null,
   course_name     text not null,
   course_code     text,
